@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import styled from '@emotion/styled';
+import PropTypes from 'prop-types';
+import { obtenerDiferenciaYear, calcalarMarca, obtenerPlan } from '../helper'
 
 const Campo = styled.div`
     display: flex;
@@ -45,7 +47,7 @@ const Error = styled.div`
     margin-bottom: 2rem;
 `;
 
-const Formulario = () => {
+const Formulario = ({ guardarResumen, guardarCargando }) => {
     const [ datos, guardarDatos ] = useState({
         marca: '',
         year: '',
@@ -76,20 +78,37 @@ const Formulario = () => {
             return;
         }
         guardarError(false);
+        guardarCargando(true);
+        //Una base de 2000
+        let resultado = 2000;
 
         // obtener la diferencia de años
-
+        const diferencia =  obtenerDiferenciaYear(year);
         // por cada año hay que restar el 3%
 
+        resultado -= (( diferencia * 3 ) * resultado)/100;
+        
         // Americano 15%
         // Asiatico 5%
         // Europeo 30%
+        resultado = (calcalarMarca(marca) * resultado);
+
 
         //plan 
         //Básico 20%
         //Completo 50%
-
-        //Total
+        const incrementoPlan = obtenerPlan(plan);
+        resultado = parseFloat( incrementoPlan * resultado ).toFixed(2);
+        setTimeout(() => {
+            //elimina spinner
+            guardarCargando(false);
+            //pasa la informacion al componente principal 
+            guardarResumen({
+                cotizacion: Number(resultado),
+                datos
+            });
+        },3000)
+        
     }
 
 
@@ -153,6 +172,11 @@ const Formulario = () => {
             </Button>
         </form>
      );
+}
+
+Formulario.propTypes = {
+    guardarResumen: PropTypes.func.isRequired,
+    guardarCargando: PropTypes.func.isRequired
 }
  
 export default Formulario;
